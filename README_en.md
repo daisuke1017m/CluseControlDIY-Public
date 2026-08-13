@@ -13,7 +13,7 @@ It reads vehicle speed (via CAN bus / pulse) and Accelerator Pedal Position Sens
 
 > **NOTE:** This project was developed based on a SUBARU Impreza WRX STI (GRB model). Applying this system to other vehicle models will require significant modifications to wiring and control parameters.
 
-> **NOTE:** Standard accelerator pedals feature dual redundant output signals, often with an offset voltage between them depending on the vehicle model. If present, this offset must be maintained to prevent triggering a vehicle fail-safe. However, in the GRB Impreza STI, both outputs share the exact same voltage level. For circuit simplification, this project utilizes only the main signal (1-input / 1-output instead of 2-input / 2-output).
+> **NOTE:** Standard accelerator pedals feature dual redundant output signals, often with an offset voltage between them depending on the vehicle model. If present, this offset must be maintained to prevent triggering a vehicle fail-safe. However, in the GRB Impreza STI, both outputs share the exact same voltage level. For circuit simplification, this project utilizes only the main signal (1-input / 2-output instead of 2-input / 2-output).
 ---
 
 ## 1. System Overview
@@ -85,6 +85,8 @@ This repository follows the standard Arduino IDE folder structure. Please refer 
 ## 4. Circuit Design & Safety Safeguards (Fail-Safe)
 
 To handle surge noise and electrical hazards unique to automotive environments, multiple protective layers are implemented:
+
+[Circuit Design ](Docs/circuit_diagram.png)
 
 1. **Hardware-First Cutoff (Most Critical):**
    When the brake pedal is depressed, a physical relay immediately bypasses the ESP32 and restores direct connection between the OEM pedal sensor and the ECU, regardless of the microcontroller's state.
