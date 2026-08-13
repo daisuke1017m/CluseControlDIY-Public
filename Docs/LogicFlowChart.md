@@ -1,4 +1,4 @@
-[readme.md](../readme.md)
+👈 [トップ（README.md）へ戻る](../readme.md)
 
 # クルーズコントロール 制御ロジック フローチャート
 

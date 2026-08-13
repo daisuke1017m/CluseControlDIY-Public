@@ -1,5 +1,4 @@
-
-[readme.md](../readme.md)
+👈 [トップ（README.md）へ戻る](../readme.md)
 
 # ESP32ピン配置
 | 機能                       | ピン番号    | 備考                             | 種類   |

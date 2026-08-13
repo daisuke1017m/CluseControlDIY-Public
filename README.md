@@ -13,7 +13,7 @@ ESP32マイコンを使用した実車用クルーズコントロール（ASCD�
 
 > **注意:** 本プロジェクトは、GRB型インプレッサSTIをベースに開発されています。他の車種に適用する場合は、配線や制御パラメータを大幅に変更する必要があります。
 
-> **注意:** 通常アクセルペダルは冗長出力されていて、車種によってはオフセットした電圧を持つ場合がある。この場合はオフセットをキープし、なければ車両がフェールセーフに入ってしまう。しかしGRB型インプレッサでは2出力が同じ電圧になっているため、回路簡略化のためメイン信号のみを使用している。つまり2入力2出力のところ、1入力1出力としている。
+> **注意:** 通常アクセルペダルは冗長出力されていて、車種によってはオフセットした電圧を持つ場合がある。この場合はオフセットをキープしなければ車両がフェールセーフに入ってしまう。しかしGRB型インプレッサでは2出力が同じ電圧になっているため、回路簡略化のためメイン信号のみを使用している。つまり2入力2出力のところ、1入力1出力としている。
 ---
 
 ## 1. システム概要
@@ -43,19 +43,31 @@ ESP32マイコンを使用した実車用クルーズコントロール（ASCD�
 
 ## 2. ディレクトリ構成とドキュメント導線
 
-本リポジトリは Arduino IDE 標準のフォルダ構成を採用しています。詳細な測定ノウハウや配線図は `docs/` ディレクトリ配下の各ドキュメントを参照してください。
+本リポジトリは Arduino IDE 標準のフォルダ構成を採用しています。詳細な仕様書やドキュメントは `Docs/` ディレクトリ配下の各ファイルを参照してください。
 
 ```text
 .
-├── ASCD.ino                     # メインスケッチ（Arduino IDEでこのファイルを開きます）
-├── config.h                     # 各種パラメータ・制御閾値の設定ヘッダー
+├── CluseControlDIY.ino          # メインスケッチ（Arduino IDEでこのファイルを開きます）
+├── Config.h                     # 各種ピンアサイン・パラメータ閾値の設定ヘッダー
+├── PIDController.cpp / .h       # PID制御演算・I項クランプ・FFトレンドロジック
+├── DataInput.cpp / .h           # CAN通信（OBD-II/パッシブ監視）・センサ入力処理
+├── PedalIO.cpp / .h             # アクセルペダル（APPS）電圧読取・PWM出力・フェールセーフ制御
+├── OledDisplay.cpp / .h         # OLEDディスプレイ描画・表示モード管理
+├── AutoLight.cpp / .h           # オートライト制御ロジック
+├── Control_Method.md            # 制御アルゴリズム・PID仕様詳細
+├── LogicDiagram.md              # 制御ロジック概要図
+├── OBD2_Supported_PIDs_v1.md    # 対応OBD-II PID一覧
 ├── README.md                    # 本ドキュメント（日本語）
 ├── README_en.md                 # 本ドキュメント（英語）
-└── docs/
-    ├── pedal_pinout_guide.md    # 📑 [詳細] アクセルペダルピン配置の調査手順・サブハーネス作成
-    ├── esp32_pinout.md          # 🔌 [詳細] ESP32 & OLED ピンアサイン・ハードウェア仕様
-    ├── user_manual.md           # 🚗 [詳細] クルーズコントロール操作マニュアル（ドライバー向け）
-    └── speed_control_graph.png  # 📈 実走制御結果グラフ
+└── Docs/
+    ├── Accel_Pedal.md           # 📑 [詳細] アクセルペダルピン配置・入力仕様
+    ├── CAN.md                   # 📡 [詳細] CANバス通信仕様（OBD-II / パッシブモニタリング）
+    ├── esp32_pinout.md          # 🔌 [詳細] ESP32 ピンアサイン・ハードウェア仕様
+    ├── LogicFlowChart.md        # 🔄 [詳細] 制御ロジックフローチャート
+    ├── LogicParameter.md        # ⚙️ [詳細] 制御パラメータ一覧・チューニングガイド
+    ├── LogicState.md            # � [詳細] 状態遷移図（ステートマシン）
+    ├── OLED.md                  # 🖥️ [詳細] OLEDディスプレイ仕様
+    └── Control_Result_Sample.png # 📈 実走制御結果グラフ
 ```
 ---
 
@@ -64,10 +76,10 @@ ESP32マイコンを使用した実車用クルーズコントロール（ASCD�
 ### ESP32 GPIOアサイン（抜粋）
 - **入力系:** [アクセルMain (GPIO34)](Docs/Accel_Pedal.md), フォトレジスタ (GPIO36), クルーズSW (GPIO14), OLED表示切替 (GPIO33)
 - **出力系:** アクセルPWM Main (GPIO26), オートライトリレー (GPIO15), ESP32 Ready (GPIO12)
-- **通信系:** [OLED](Docs\OLED.md) I2C (SCL: GPIO22 / SDA: GPIO21), [CAN](Docs\CAN.md) (TX: GPIO17 / RX: GPIO16)
+- **通信系:** [OLED](Docs/OLED.md) I2C (SCL: GPIO22 / SDA: GPIO21), [CAN](Docs/CAN.md) (TX: GPIO17 / RX: GPIO16)
 
 👉 **全ピンの詳細な仕様と回路構成:**
-[esp32_pinout.md](docs/esp32_pinout.md)
+[esp32_pinout.md](Docs/esp32_pinout.md)
 
 ---
 
@@ -84,7 +96,7 @@ ESP32マイコンを使用した実車用クルーズコントロール（ASCD�
    実車のアクセル信号（0.6V〜3.5V）に対し、ESP32のADC上限（3.3V）を超えないよう抵抗分圧回路を配置。
 
 
-👉 **配線特定ノウハウおよびサブハーネス作成:** [docs/pedal_pinout_guide.md](docs/pedal_pinout_guide.md)
+👉 **配線特定ノウハウおよびアクセル信号仕様:** [Docs/Accel_Pedal.md](Docs/Accel_Pedal.md)
 
 ---
 ## 5. 制御概要
