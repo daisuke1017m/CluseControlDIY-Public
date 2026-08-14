@@ -47,7 +47,7 @@ This repository follows the standard Arduino IDE folder structure. Please refer 
 
 ```text
 .
-├── CluseControlDIY.ino          # Main sketch file (Open this in Arduino IDE)
+├── Cruise_Control_DIY-Public.ino          # Main sketch file (Open this in Arduino IDE)
 ├── Config.h                     # Pin assignments and parameter threshold configuration
 ├── PIDController.cpp / .h       # PID calculation, I-term decay, and FF trend logic
 ├── DataInput.cpp / .h           # CAN bus (OBD-II / Passive monitoring) & sensor input handling

@@ -47,7 +47,7 @@ ESP32マイコンを使用した実車用クルーズコントロール（ASCD�
 
 ```text
 .
-├── CluseControlDIY.ino          # メインスケッチ（Arduino IDEでこのファイルを開きます）
+├── Cruise_Control_DIY-Public.ino          # メインスケッチ（Arduino IDEでこのファイルを開きます）
 ├── Config.h                     # 各種ピンアサイン・パラメータ閾値の設定ヘッダー
 ├── PIDController.cpp / .h       # PID制御演算・I項クランプ・FFトレンドロジック
 ├── DataInput.cpp / .h           # CAN通信（OBD-II/パッシブ監視）・センサ入力処理
